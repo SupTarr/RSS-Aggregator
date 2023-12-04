@@ -27,16 +27,16 @@ RETURNING id, feed_id, title, description, url, published_at, created_at, update
 `
 
 type CreatePostParams struct {
-	ID          uuid.UUID
-	Title       string
-	Description sql.NullString
-	PublishedAt time.Time
-	Url         string
-	FeedID      uuid.UUID
+	ID          uuid.UUID      `json:"id"`
+	Title       string         `json:"title"`
+	Description sql.NullString `json:"description"`
+	PublishedAt time.Time      `json:"published_at"`
+	Url         string         `json:"url"`
+	FeedID      uuid.UUID      `json:"feed_id"`
 }
 
 func (q *Queries) CreatePost(ctx context.Context, arg CreatePostParams) (Post, error) {
-	row := q.db.QueryRowContext(ctx, createPost,
+	row := q.queryRow(ctx, q.createPostStmt, createPost,
 		arg.ID,
 		arg.Title,
 		arg.Description,
@@ -68,12 +68,12 @@ LIMIT $2
 `
 
 type GetPostsForUserParams struct {
-	UserID uuid.UUID
-	Limit  int32
+	UserID uuid.UUID `json:"user_id"`
+	Limit  int32     `json:"limit"`
 }
 
 func (q *Queries) GetPostsForUser(ctx context.Context, arg GetPostsForUserParams) ([]Post, error) {
-	rows, err := q.db.QueryContext(ctx, getPostsForUser, arg.UserID, arg.Limit)
+	rows, err := q.query(ctx, q.getPostsForUserStmt, getPostsForUser, arg.UserID, arg.Limit)
 	if err != nil {
 		return nil, err
 	}

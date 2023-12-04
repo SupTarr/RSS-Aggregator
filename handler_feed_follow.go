@@ -33,7 +33,7 @@ func (apiCfg apiConfig) handlerCreateFeedFllow(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	respondWithJSON(w, http.StatusCreated, databaseFeedFollowToFeedFollow(feedFollow))
+	respondWithJSON(w, http.StatusCreated, feedFollow)
 }
 
 func (apiCfg apiConfig) handlerGetFeedFllows(w http.ResponseWriter, r *http.Request, user database.User) {
@@ -43,7 +43,7 @@ func (apiCfg apiConfig) handlerGetFeedFllows(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	respondWithJSON(w, http.StatusOK, databaseFeedFollowsToFeedFollows(feedFollows))
+	respondWithJSON(w, http.StatusOK, feedFollows)
 }
 
 func (apiCfg apiConfig) handlerDeleteFeedFllows(w http.ResponseWriter, r *http.Request, user database.User) {

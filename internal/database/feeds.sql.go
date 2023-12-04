@@ -18,14 +18,14 @@ RETURNING id, user_id, name, url, created_at, updated_at, last_fetched_at
 `
 
 type CreateFeedParams struct {
-	ID     uuid.UUID
-	Name   string
-	Url    string
-	UserID uuid.UUID
+	ID     uuid.UUID `json:"id"`
+	Name   string    `json:"name"`
+	Url    string    `json:"url"`
+	UserID uuid.UUID `json:"user_id"`
 }
 
 func (q *Queries) CreateFeed(ctx context.Context, arg CreateFeedParams) (Feed, error) {
-	row := q.db.QueryRowContext(ctx, createFeed,
+	row := q.queryRow(ctx, q.createFeedStmt, createFeed,
 		arg.ID,
 		arg.Name,
 		arg.Url,
@@ -50,7 +50,7 @@ FROM feeds
 `
 
 func (q *Queries) GetFeeds(ctx context.Context) ([]Feed, error) {
-	rows, err := q.db.QueryContext(ctx, getFeeds)
+	rows, err := q.query(ctx, q.getFeedsStmt, getFeeds)
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +88,7 @@ LIMIT $1
 `
 
 func (q *Queries) GetNextFeedsToFetch(ctx context.Context, limit int32) ([]Feed, error) {
-	rows, err := q.db.QueryContext(ctx, getNextFeedsToFetch, limit)
+	rows, err := q.query(ctx, q.getNextFeedsToFetchStmt, getNextFeedsToFetch, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +127,7 @@ RETURNING id, user_id, name, url, created_at, updated_at, last_fetched_at
 `
 
 func (q *Queries) MarkFeedAsFetched(ctx context.Context, id uuid.UUID) (Feed, error) {
-	row := q.db.QueryRowContext(ctx, markFeedAsFetched, id)
+	row := q.queryRow(ctx, q.markFeedAsFetchedStmt, markFeedAsFetched, id)
 	var i Feed
 	err := row.Scan(
 		&i.ID,

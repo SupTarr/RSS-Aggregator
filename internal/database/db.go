@@ -7,6 +7,7 @@ package database
 import (
 	"context"
 	"database/sql"
+	"fmt"
 )
 
 type DBTX interface {
@@ -20,12 +21,168 @@ func New(db DBTX) *Queries {
 	return &Queries{db: db}
 }
 
+func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
+	q := Queries{db: db}
+	var err error
+	if q.createFeedStmt, err = db.PrepareContext(ctx, createFeed); err != nil {
+		return nil, fmt.Errorf("error preparing query CreateFeed: %w", err)
+	}
+	if q.createFeedFollowStmt, err = db.PrepareContext(ctx, createFeedFollow); err != nil {
+		return nil, fmt.Errorf("error preparing query CreateFeedFollow: %w", err)
+	}
+	if q.createPostStmt, err = db.PrepareContext(ctx, createPost); err != nil {
+		return nil, fmt.Errorf("error preparing query CreatePost: %w", err)
+	}
+	if q.createUserStmt, err = db.PrepareContext(ctx, createUser); err != nil {
+		return nil, fmt.Errorf("error preparing query CreateUser: %w", err)
+	}
+	if q.deleteFeedFollowStmt, err = db.PrepareContext(ctx, deleteFeedFollow); err != nil {
+		return nil, fmt.Errorf("error preparing query DeleteFeedFollow: %w", err)
+	}
+	if q.getFeedFollowsStmt, err = db.PrepareContext(ctx, getFeedFollows); err != nil {
+		return nil, fmt.Errorf("error preparing query GetFeedFollows: %w", err)
+	}
+	if q.getFeedsStmt, err = db.PrepareContext(ctx, getFeeds); err != nil {
+		return nil, fmt.Errorf("error preparing query GetFeeds: %w", err)
+	}
+	if q.getNextFeedsToFetchStmt, err = db.PrepareContext(ctx, getNextFeedsToFetch); err != nil {
+		return nil, fmt.Errorf("error preparing query GetNextFeedsToFetch: %w", err)
+	}
+	if q.getPostsForUserStmt, err = db.PrepareContext(ctx, getPostsForUser); err != nil {
+		return nil, fmt.Errorf("error preparing query GetPostsForUser: %w", err)
+	}
+	if q.getUserByApiKeyStmt, err = db.PrepareContext(ctx, getUserByApiKey); err != nil {
+		return nil, fmt.Errorf("error preparing query GetUserByApiKey: %w", err)
+	}
+	if q.markFeedAsFetchedStmt, err = db.PrepareContext(ctx, markFeedAsFetched); err != nil {
+		return nil, fmt.Errorf("error preparing query MarkFeedAsFetched: %w", err)
+	}
+	return &q, nil
+}
+
+func (q *Queries) Close() error {
+	var err error
+	if q.createFeedStmt != nil {
+		if cerr := q.createFeedStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing createFeedStmt: %w", cerr)
+		}
+	}
+	if q.createFeedFollowStmt != nil {
+		if cerr := q.createFeedFollowStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing createFeedFollowStmt: %w", cerr)
+		}
+	}
+	if q.createPostStmt != nil {
+		if cerr := q.createPostStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing createPostStmt: %w", cerr)
+		}
+	}
+	if q.createUserStmt != nil {
+		if cerr := q.createUserStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing createUserStmt: %w", cerr)
+		}
+	}
+	if q.deleteFeedFollowStmt != nil {
+		if cerr := q.deleteFeedFollowStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing deleteFeedFollowStmt: %w", cerr)
+		}
+	}
+	if q.getFeedFollowsStmt != nil {
+		if cerr := q.getFeedFollowsStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getFeedFollowsStmt: %w", cerr)
+		}
+	}
+	if q.getFeedsStmt != nil {
+		if cerr := q.getFeedsStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getFeedsStmt: %w", cerr)
+		}
+	}
+	if q.getNextFeedsToFetchStmt != nil {
+		if cerr := q.getNextFeedsToFetchStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getNextFeedsToFetchStmt: %w", cerr)
+		}
+	}
+	if q.getPostsForUserStmt != nil {
+		if cerr := q.getPostsForUserStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getPostsForUserStmt: %w", cerr)
+		}
+	}
+	if q.getUserByApiKeyStmt != nil {
+		if cerr := q.getUserByApiKeyStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getUserByApiKeyStmt: %w", cerr)
+		}
+	}
+	if q.markFeedAsFetchedStmt != nil {
+		if cerr := q.markFeedAsFetchedStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing markFeedAsFetchedStmt: %w", cerr)
+		}
+	}
+	return err
+}
+
+func (q *Queries) exec(ctx context.Context, stmt *sql.Stmt, query string, args ...interface{}) (sql.Result, error) {
+	switch {
+	case stmt != nil && q.tx != nil:
+		return q.tx.StmtContext(ctx, stmt).ExecContext(ctx, args...)
+	case stmt != nil:
+		return stmt.ExecContext(ctx, args...)
+	default:
+		return q.db.ExecContext(ctx, query, args...)
+	}
+}
+
+func (q *Queries) query(ctx context.Context, stmt *sql.Stmt, query string, args ...interface{}) (*sql.Rows, error) {
+	switch {
+	case stmt != nil && q.tx != nil:
+		return q.tx.StmtContext(ctx, stmt).QueryContext(ctx, args...)
+	case stmt != nil:
+		return stmt.QueryContext(ctx, args...)
+	default:
+		return q.db.QueryContext(ctx, query, args...)
+	}
+}
+
+func (q *Queries) queryRow(ctx context.Context, stmt *sql.Stmt, query string, args ...interface{}) *sql.Row {
+	switch {
+	case stmt != nil && q.tx != nil:
+		return q.tx.StmtContext(ctx, stmt).QueryRowContext(ctx, args...)
+	case stmt != nil:
+		return stmt.QueryRowContext(ctx, args...)
+	default:
+		return q.db.QueryRowContext(ctx, query, args...)
+	}
+}
+
 type Queries struct {
-	db DBTX
+	db                      DBTX
+	tx                      *sql.Tx
+	createFeedStmt          *sql.Stmt
+	createFeedFollowStmt    *sql.Stmt
+	createPostStmt          *sql.Stmt
+	createUserStmt          *sql.Stmt
+	deleteFeedFollowStmt    *sql.Stmt
+	getFeedFollowsStmt      *sql.Stmt
+	getFeedsStmt            *sql.Stmt
+	getNextFeedsToFetchStmt *sql.Stmt
+	getPostsForUserStmt     *sql.Stmt
+	getUserByApiKeyStmt     *sql.Stmt
+	markFeedAsFetchedStmt   *sql.Stmt
 }
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 	return &Queries{
-		db: tx,
+		db:                      tx,
+		tx:                      tx,
+		createFeedStmt:          q.createFeedStmt,
+		createFeedFollowStmt:    q.createFeedFollowStmt,
+		createPostStmt:          q.createPostStmt,
+		createUserStmt:          q.createUserStmt,
+		deleteFeedFollowStmt:    q.deleteFeedFollowStmt,
+		getFeedFollowsStmt:      q.getFeedFollowsStmt,
+		getFeedsStmt:            q.getFeedsStmt,
+		getNextFeedsToFetchStmt: q.getNextFeedsToFetchStmt,
+		getPostsForUserStmt:     q.getPostsForUserStmt,
+		getUserByApiKeyStmt:     q.getUserByApiKeyStmt,
+		markFeedAsFetchedStmt:   q.markFeedAsFetchedStmt,
 	}
 }

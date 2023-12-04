@@ -17,5 +17,5 @@ func (apiCfg apiConfig) handlerGetPostsForUser(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	respondWithJSON(w, http.StatusOK, databasePostsToPosts(posts))
+	respondWithJSON(w, http.StatusOK, posts)
 }

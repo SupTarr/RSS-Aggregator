@@ -22,12 +22,12 @@ RETURNING id, name, created_at, updated_at, api_key
 `
 
 type CreateUserParams struct {
-	ID   uuid.UUID
-	Name string
+	ID   uuid.UUID `json:"id"`
+	Name string    `json:"name"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	row := q.db.QueryRowContext(ctx, createUser, arg.ID, arg.Name)
+	row := q.queryRow(ctx, q.createUserStmt, createUser, arg.ID, arg.Name)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -46,7 +46,7 @@ WHERE api_key = $1
 `
 
 func (q *Queries) GetUserByApiKey(ctx context.Context, apiKey string) (User, error) {
-	row := q.db.QueryRowContext(ctx, getUserByApiKey, apiKey)
+	row := q.queryRow(ctx, q.getUserByApiKeyStmt, getUserByApiKey, apiKey)
 	var i User
 	err := row.Scan(
 		&i.ID,

@@ -18,13 +18,13 @@ RETURNING id, user_id, feed_id, created_at, updated_at
 `
 
 type CreateFeedFollowParams struct {
-	ID     uuid.UUID
-	UserID uuid.UUID
-	FeedID uuid.UUID
+	ID     uuid.UUID `json:"id"`
+	UserID uuid.UUID `json:"user_id"`
+	FeedID uuid.UUID `json:"feed_id"`
 }
 
 func (q *Queries) CreateFeedFollow(ctx context.Context, arg CreateFeedFollowParams) (FeedFollow, error) {
-	row := q.db.QueryRowContext(ctx, createFeedFollow, arg.ID, arg.UserID, arg.FeedID)
+	row := q.queryRow(ctx, q.createFeedFollowStmt, createFeedFollow, arg.ID, arg.UserID, arg.FeedID)
 	var i FeedFollow
 	err := row.Scan(
 		&i.ID,
@@ -43,12 +43,12 @@ WHERE id = $1
 `
 
 type DeleteFeedFollowParams struct {
-	ID     uuid.UUID
-	UserID uuid.UUID
+	ID     uuid.UUID `json:"id"`
+	UserID uuid.UUID `json:"user_id"`
 }
 
 func (q *Queries) DeleteFeedFollow(ctx context.Context, arg DeleteFeedFollowParams) error {
-	_, err := q.db.ExecContext(ctx, deleteFeedFollow, arg.ID, arg.UserID)
+	_, err := q.exec(ctx, q.deleteFeedFollowStmt, deleteFeedFollow, arg.ID, arg.UserID)
 	return err
 }
 
@@ -59,7 +59,7 @@ WHERE user_id = $1
 `
 
 func (q *Queries) GetFeedFollows(ctx context.Context, userID uuid.UUID) ([]FeedFollow, error) {
-	rows, err := q.db.QueryContext(ctx, getFeedFollows, userID)
+	rows, err := q.query(ctx, q.getFeedFollowsStmt, getFeedFollows, userID)
 	if err != nil {
 		return nil, err
 	}

@@ -12,38 +12,38 @@ import (
 )
 
 type Feed struct {
-	ID            uuid.UUID
-	UserID        uuid.UUID
-	Name          string
-	Url           string
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
-	LastFetchedAt sql.NullTime
+	ID            uuid.UUID    `json:"id"`
+	UserID        uuid.UUID    `json:"user_id"`
+	Name          string       `json:"name"`
+	Url           string       `json:"url"`
+	CreatedAt     time.Time    `json:"created_at"`
+	UpdatedAt     time.Time    `json:"updated_at"`
+	LastFetchedAt sql.NullTime `json:"last_fetched_at"`
 }
 
 type FeedFollow struct {
-	ID        uuid.UUID
-	UserID    uuid.UUID
-	FeedID    uuid.UUID
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID        uuid.UUID `json:"id"`
+	UserID    uuid.UUID `json:"user_id"`
+	FeedID    uuid.UUID `json:"feed_id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 type Post struct {
-	ID          uuid.UUID
-	FeedID      uuid.UUID
-	Title       string
-	Description sql.NullString
-	Url         string
-	PublishedAt time.Time
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	ID          uuid.UUID      `json:"id"`
+	FeedID      uuid.UUID      `json:"feed_id"`
+	Title       string         `json:"title"`
+	Description sql.NullString `json:"description"`
+	Url         string         `json:"url"`
+	PublishedAt time.Time      `json:"published_at"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
 }
 
 type User struct {
-	ID        uuid.UUID
-	Name      string
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	ApiKey    string
+	ID        uuid.UUID `json:"id"`
+	Name      string    `json:"name"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+	ApiKey    string    `json:"api_key"`
 }
