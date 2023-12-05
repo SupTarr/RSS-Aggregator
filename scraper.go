@@ -10,7 +10,14 @@ import (
 
 	"github.com/SupTarr/RSS-Aggregator/internal/database"
 	"github.com/google/uuid"
+	"github.com/mmcdole/gofeed"
 )
+
+func urlToFeed(url string) (gofeed.Feed, error) {
+	fp := gofeed.NewParser()
+	feed, _ := fp.ParseURL(url)
+	return *feed, nil
+}
 
 func startScraping(db *database.Queries, concurrency int, timeBetweenRequest time.Duration) {
 	log.Printf("Scraping on %d goroutines every %s duration", concurrency, timeBetweenRequest)
